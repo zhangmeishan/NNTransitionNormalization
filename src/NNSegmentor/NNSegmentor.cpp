@@ -280,13 +280,13 @@ void Segmentor::train(const string& trainFile, const string& devFile, const stri
 	for (int iter = 0; iter < maxIter; ++iter) {
 		std::cout << "##### Iteration " << iter << std::endl;
 		srand(iter);
-		random_shuffle(indexes.begin(), indexes.end());
-		std::cout << "random: " << indexes[0] << ", " << indexes[indexes.size() - 1] << std::endl;
 		bool bEvaluate = false;
 
 		if (m_options.batchSize == 1){
 			eval.reset();
 			bEvaluate = true;
+      random_shuffle(indexes.begin(), indexes.end());
+      std::cout << "random: " << indexes[0] << ", " << indexes[indexes.size() - 1] << std::endl;
 			for (int idy = 0; idy < inputSize; idy++) {
 				subInstances.clear();
 				subInstGoldActions.clear();
@@ -306,25 +306,29 @@ void Segmentor::train(const string& trainFile, const string& devFile, const stri
 			std::cout << "current: " << iter + 1 << ", Correct(%) = " << eval.getAccuracy() << std::endl;
 		}
 		else{
-			if (iter == 0)eval.reset();
-			subInstances.clear();
-			subInstGoldActions.clear();
-			for (int idy = 0; idy < m_options.batchSize; idy++) {
-				subInstances.push_back(trainInsts[indexes[idy]].chars);
-				subInstGoldActions.push_back(trainInstGoldactions[indexes[idy]]);
-			}
-			double cost = m_driver.train(subInstances, subInstGoldActions);
+			eval.reset();
+      bEvaluate = true;
+      for (int idy = 0; idy < inputSize; idy++) {
+        random_shuffle(indexes.begin(), indexes.end());
+        subInstances.clear();
+        subInstGoldActions.clear();
+        for (int idy = 0; idy < m_options.batchSize; idy++) {
+          subInstances.push_back(trainInsts[indexes[idy]].chars);
+          subInstGoldActions.push_back(trainInstGoldactions[indexes[idy]]);
+        }
+        double cost = m_driver.train(subInstances, subInstGoldActions);
 
-			eval.overall_label_count += m_driver._eval.overall_label_count;
-			eval.correct_label_count += m_driver._eval.correct_label_count;
+        eval.overall_label_count += m_driver._eval.overall_label_count;
+        eval.correct_label_count += m_driver._eval.correct_label_count;
 
-			if ((iter + 1) % (m_options.verboseIter) == 0) {
-				std::cout << "current: " << iter + 1 << ", Cost = " << cost << ", Correct(%) = " << eval.getAccuracy() << std::endl;
-				eval.reset();
-				bEvaluate = true;
-			}
+        if ((idy + 1) % (m_options.verboseIter * 10) == 0) {
+          std::cout << "current: " << idy + 1 << ", Cost = " << cost << ", Correct(%) = " << eval.getAccuracy() << std::endl;
+        }
 
-			m_driver.updateModel();
+        m_driver.updateModel();
+      }
+
+      std::cout << "current: " << iter + 1 << ", Correct(%) = " << eval.getAccuracy() << std::endl;
 		}
 
 		if (bEvaluate && devNum > 0) {
