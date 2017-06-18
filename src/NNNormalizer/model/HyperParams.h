@@ -1,7 +1,7 @@
 #ifndef SRC_HyperParams_H_
 #define SRC_HyperParams_H_
 
-#include "N3L.h"
+#include "N3LDG.h"
 #include "Options.h"
 
 using namespace nr;
@@ -15,6 +15,7 @@ struct HyperParams{
 	int maxlength;
 	int action_num;
 	dtype delta;
+  int batch;
 
 
 	dtype nnRegular; // for optimization
@@ -70,6 +71,7 @@ public:
 		adaAlpha = opt.adaAlpha;
 		adaEps = opt.adaEps;
 		dropProb = opt.dropProb;
+    batch = opt.batchSize;
 
 		char_dim = opt.charEmbSize;
 		bichar_dim = opt.bicharEmbSize;

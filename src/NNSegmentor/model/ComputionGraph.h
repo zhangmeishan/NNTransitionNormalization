@@ -125,7 +125,7 @@ public:
       if (_pcg->train) answer = (*goldAC)[step];
       beam.clear();
 
-      for (int idx = 0; idx < lastStates.size(); idx++) { 
+      for (int idx = 0; idx < lastStates.size(); idx++) {
         pGenerator = lastStates[idx];
         scored_action.item = pGenerator;
         for (int idy = 0; idy < actions[idx].size(); ++idy) {

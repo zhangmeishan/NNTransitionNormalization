@@ -8,7 +8,7 @@
 #ifndef SRC_PARSER_H_
 #define SRC_PARSER_H_
 
-#include "N3L.h"
+#include "N3LDG.h"
 
 #include "Driver.h"
 #include "Options.h"
@@ -36,7 +36,7 @@ public:
 
 public:
 	void train(const string& trainFile, const string& devFile, const string& testFile, const string& modelFile, const string& optionFile);
-	void predict(const Instance& input, dtype ratio, vector<string>& output, vector<string>& tags);
+	void predict(const vector<Instance>& inputs, dtype ratio, vector<vector<string> >& segouts, vector<vector<string> >& tagouts);
 	void test(const string& testFile, dtype ratio, const string& outputFile, const string& modelFile);
 
 	// static training
