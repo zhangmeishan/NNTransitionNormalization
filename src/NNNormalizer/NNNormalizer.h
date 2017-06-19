@@ -14,6 +14,7 @@
 #include "Options.h"
 #include "Pipe.h"
 #include "Utf.h"
+#include <vld.h> 
 
 using namespace nr;
 using namespace std;

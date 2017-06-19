@@ -22,6 +22,7 @@ public:
 
   ~Driver() {
     _batch = 0;
+    _builders.clear();
   }
 
 public:

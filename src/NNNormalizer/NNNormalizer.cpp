@@ -11,7 +11,7 @@
 
 Normalizer::Normalizer(size_t memsize) : m_driver(memsize) {
   // TODO Auto-generated constructor stub
-  srand(0);
+  srand(3);
   //Node::id = 0;
 }
 
@@ -34,7 +34,6 @@ int Normalizer::initialActionWordMap() {
   inf.open(m_options.mapFile.c_str());
   static string strLine;
   static vector<string> vecInfo;
-  bool endRead = false;
   while (1) {
     if (!my_getline(inf, strLine)) {
       break;
@@ -73,6 +72,8 @@ int Normalizer::initialActionWordMap() {
   }
 
   inf.close();
+
+  return 1;
 }
 
 // all linear features are extracted from positive examples
@@ -386,10 +387,9 @@ void Normalizer::train(const string& trainFile, const string& devFile, const str
   static vector<vector<CAction> > subInstGoldActions;
   static Instance inst;
   static vector<CAction> actions;
-
   for (int iter = 0; iter < maxIter; ++iter) {
     std::cout << "##### Iteration " << iter << std::endl;
-    srand(iter);
+    //srand(iter);
     bool bEvaluate = false;
 
     if (m_options.batchSize == 1) {
@@ -589,7 +589,6 @@ void Normalizer::writeModelFile(const string& outputModelFile) {
 
 }
 
-int Node::global_code = 0;
 
 int main(int argc, char* argv[]) {
   std::string trainFile = "", devFile = "", testFile = "", modelFile = "";
@@ -623,5 +622,4 @@ int main(int argc, char* argv[]) {
 
   //test(argv);
   //ah.write_values(std::cout);
-
 }
