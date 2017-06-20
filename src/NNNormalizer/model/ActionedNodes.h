@@ -112,9 +112,9 @@ public:
 
 public:
   inline void forward(Graph* cg, const vector<CAction>& actions, AtomFeatures& atomFeat, PNode prevStateNode) {
-    static vector<PNode> sumNodes;
-    static CAction ac;
-    static int ac_num;
+    vector<PNode> sumNodes;
+    CAction ac;
+    int ac_num;
     ac_num = actions.size();
 
     bucket_char.forward(cg, 0);

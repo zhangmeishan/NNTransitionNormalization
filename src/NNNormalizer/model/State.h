@@ -210,7 +210,7 @@ public:
   void getSegResults(std::vector<std::string>& words, std::vector<std::string>& tags) const {
     words.clear();
     tags.clear();
-    static vector<const CStateItem *> preSepStates;
+    vector<const CStateItem *> preSepStates;
     preSepStates.clear();
     if (!IsTerminated()) {
       preSepStates.insert(preSepStates.begin(), this);
@@ -221,7 +221,7 @@ public:
       prevStackState = prevStackState->_prevStackState;
     }
     //will add results
-    static int state_num;
+    int state_num;
     state_num = preSepStates.size();
     if (state_num != _word_count) {
       std::cout << "bug exists: " << state_num << " " << _word_count << std::endl;
@@ -288,7 +288,7 @@ public:
 
   void getCandidateActions(vector<CAction> & actions) const {
     actions.clear();
-    static CAction ac;
+    CAction ac;
     if (_next_index == 0) {
       ac.set(CAction::SEP);
       actions.push_back(ac);

@@ -83,10 +83,8 @@ public:
 
     for (int idx = 0; idx < num; idx++) {
       _builders[idx].decode(&sentences[idx], &goldACs[idx]);
-
       _eval.overall_label_count += goldACs[idx].size();
-      cost += loss_google(idx, num);
-
+      cost += loss_google(_builders[idx], num);
     }
 
     _cg.backward();
@@ -120,8 +118,8 @@ public:
       _modelparams.exportModelParams(_ada);
     }
     //_ada.rescaleGrad(1.0 / _batch);
-    _ada.update(10);
-    //_ada.updateAdam(10);
+    //_ada.update(10);
+    _ada.updateAdam(10);
     _batch = 0;
   }
 
@@ -131,20 +129,20 @@ public:
 
 private:
   // max-margin
-  dtype loss(int batch_index, int num) {
-    int step = _builders[batch_index].outputs.size();
+  dtype loss(GraphBuilder& builder, int num) {
+    int step = builder.outputs.size();
     _eval.correct_label_count += step;
-    static PNode pBestNode = NULL;
-    static PNode pGoldNode = NULL;
-    static PNode pCurNode;
+    PNode pBestNode = NULL;
+    PNode pGoldNode = NULL;
+    PNode pCurNode;
 
-    int offset = _builders[batch_index].outputs[step - 1].size();
+    int offset = builder.outputs[step - 1].size();
     for (int idx = 0; idx < offset; idx++) {
-      pCurNode = _builders[batch_index].outputs[step - 1][idx].in;
+      pCurNode = builder.outputs[step - 1][idx].in;
       if (pBestNode == NULL || pCurNode->val[0] > pBestNode->val[0]) {
         pBestNode = pCurNode;
       }
-      if (_builders[batch_index].outputs[step - 1][idx].bGold) {
+      if (builder.outputs[step - 1][idx].bGold) {
         pGoldNode = pCurNode;
       }
     }
@@ -161,29 +159,29 @@ private:
     return 0.0;
   }
 
-  dtype loss_google(int batch_index, int num) {
-    int maxstep = _builders[batch_index].outputs.size();
+  dtype loss_google(GraphBuilder& builder, int num) {
+    int maxstep = builder.outputs.size();
     if (maxstep == 0) return 1.0;
     _eval.correct_label_count += maxstep;
-    static PNode pBestNode = NULL;
-    static PNode pGoldNode = NULL;
-    static PNode pCurNode;
-    static dtype sum, max;
-    static int curcount, goldIndex;
-    static vector<dtype> scores;
+    PNode pBestNode = NULL;
+    PNode pGoldNode = NULL;
+    PNode pCurNode;
+    dtype sum, max;
+    int curcount, goldIndex;
+    vector<dtype> scores;
     dtype cost = 0.0;
 
     for (int step = 0; step < maxstep; step++) {
-      curcount = _builders[batch_index].outputs[step].size();
+      curcount = builder.outputs[step].size();
       max = 0.0;
       goldIndex = -1;
       pBestNode = pGoldNode = NULL;
       for (int idx = 0; idx < curcount; idx++) {
-        pCurNode = _builders[batch_index].outputs[step][idx].in;
+        pCurNode = builder.outputs[step][idx].in;
         if (pBestNode == NULL || pCurNode->val[0] > pBestNode->val[0]) {
           pBestNode = pCurNode;
         }
-        if (_builders[batch_index].outputs[step][idx].bGold) {
+        if (builder.outputs[step][idx].bGold) {
           pGoldNode = pCurNode;
           goldIndex = idx;
         }
@@ -198,20 +196,24 @@ private:
       sum = 0.0;
       scores.resize(curcount);
       for (int idx = 0; idx < curcount; idx++) {
-        pCurNode = _builders[batch_index].outputs[step][idx].in;
+        pCurNode = builder.outputs[step][idx].in;
         scores[idx] = exp(pCurNode->val[0] - max);
         sum += scores[idx];
       }
 
       for (int idx = 0; idx < curcount; idx++) {
-        pCurNode = _builders[batch_index].outputs[step][idx].in;
+        pCurNode = builder.outputs[step][idx].in;
         pCurNode->loss[0] += scores[idx] / (sum * num);
       }
 
       cost += -log(scores[goldIndex] / sum);
 
       if (std::isnan(cost)) {
-        std::cout << "debug" << std::endl;
+        std::cout << "debug: " << goldIndex << ", sum = " << sum << ", num = " << num << std::endl;
+        for (int idx = 0; idx < curcount; idx++) {
+          std::cout << scores[idx] << " ";
+        }
+        std::cout << std::endl;
       }
 
       _batch++;

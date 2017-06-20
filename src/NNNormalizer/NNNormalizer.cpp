@@ -11,7 +11,7 @@
 
 Normalizer::Normalizer(size_t memsize) : m_driver(memsize) {
   // TODO Auto-generated constructor stub
-  srand(3);
+  srand(0);
   //Node::id = 0;
 }
 
@@ -26,14 +26,14 @@ int Normalizer::initialActionWordMap() {
     return -1;
   }
 
-  static ifstream inf;
+  ifstream inf;
   if (inf.is_open()) {
     inf.close();
     inf.clear();
   }
   inf.open(m_options.mapFile.c_str());
-  static string strLine;
-  static vector<string> vecInfo;
+  string strLine;
+  vector<string> vecInfo;
   while (1) {
     if (!my_getline(inf, strLine)) {
       break;
@@ -228,7 +228,7 @@ void Normalizer::getGoldActions(const vector<Instance>& vecInsts, vector<vector<
   vector<string> output, tags;
   CAction answer;
   eval.reset(); evalnorm.reset();
-  static int numInstance, actionNum;
+  int numInstance, actionNum;
   vecActions.resize(vecInsts.size());
   for (numInstance = 0; numInstance < vecInsts.size(); numInstance++) {
     const Instance &instance = vecInsts[numInstance];
@@ -374,22 +374,22 @@ void Normalizer::train(const string& trainFile, const string& devFile, const str
   for (int i = 0; i < inputSize; ++i)
     indexes.push_back(i);
 
-  static Metric eval, metric_dev, metric_test, metricnorm_dev, metricnorm_test;
+  Metric eval, metric_dev, metric_test, metricnorm_dev, metricnorm_test;
 
   int maxIter = m_options.maxIter * (inputSize / m_options.batchSize + 1);
   int oneIterMaxRound = (inputSize + m_options.batchSize - 1) / m_options.batchSize;
   std::cout << "maxIter = " << maxIter << std::endl;
   int devNum = devInsts.size(), testNum = testInsts.size();
 
-  static vector<vector<string> > decodeInstResults, decodeInstTags;
-  static bool bCurIterBetter;
-  static vector<vector<string> > subInstances;
-  static vector<vector<CAction> > subInstGoldActions;
-  static Instance inst;
-  static vector<CAction> actions;
+  vector<vector<string> > decodeInstResults, decodeInstTags;
+  bool bCurIterBetter;
+  vector<vector<string> > subInstances;
+  vector<vector<CAction> > subInstGoldActions;
+  Instance inst;
+  vector<CAction> actions;
   for (int iter = 0; iter < maxIter; ++iter) {
     std::cout << "##### Iteration " << iter << std::endl;
-    //srand(iter);
+    srand(iter);
     bool bEvaluate = false;
 
     if (m_options.batchSize == 1) {
@@ -420,7 +420,7 @@ void Normalizer::train(const string& trainFile, const string& devFile, const str
     else {
       eval.reset();
       bEvaluate = true;
-      for (int idy = 0; idy < inputSize; idy++) {
+      for (int idk = 0; idk < (inputSize + m_options.batchSize - 1)/m_options.batchSize; idk++) {
         random_shuffle(indexes.begin(), indexes.end());
         subInstances.clear();
         subInstGoldActions.clear();
@@ -435,8 +435,8 @@ void Normalizer::train(const string& trainFile, const string& devFile, const str
         eval.overall_label_count += m_driver._eval.overall_label_count;
         eval.correct_label_count += m_driver._eval.correct_label_count;
 
-        if ((idy + 1) % (m_options.verboseIter * 10) == 0) {
-          std::cout << "current: " << idy + 1 << ", Cost = " << cost << ", Correct(%) = " << eval.getAccuracy() << std::endl;
+        if ((idk + 1) % (m_options.verboseIter * 10) == 0) {
+          std::cout << "current: " << idk + 1 << ", Cost = " << cost << ", Correct(%) = " << eval.getAccuracy() << std::endl;
         }
 
         m_driver.updateModel();

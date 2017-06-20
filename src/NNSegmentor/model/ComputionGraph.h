@@ -85,17 +85,17 @@ public:
     clearVec(outputs);
 
     //second step, build graph
-    static vector<CStateItem*> lastStates;
-    static CStateItem* pGenerator;
-    static int step, offset;
-    static vector<vector<CAction> > actions; // actions to apply for a candidate
-    static CScoredState scored_action; // used rank actions
-    static COutput output;
-    static bool correct_action_scored;
-    static bool correct_in_beam;
-    static CAction answer, action;
-    static vector<COutput> per_step_output;
-    static NRHeap<CScoredState, CScoredState_Compare> beam;
+    vector<CStateItem*> lastStates;
+    CStateItem* pGenerator;
+    int step, offset;
+    vector<vector<CAction> > actions; // actions to apply for a candidate
+    CScoredState scored_action; // used rank actions
+    COutput output;
+    bool correct_action_scored;
+    bool correct_in_beam;
+    CAction answer, action;
+    vector<COutput> per_step_output;
+    NRHeap<CScoredState, CScoredState_Compare> beam;
     beam.resize(pOpts->beam);
     actions.resize(pOpts->beam);
 

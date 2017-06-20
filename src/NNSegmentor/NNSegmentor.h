@@ -37,7 +37,6 @@ public:
 	void predict(const vector<Instance>& inputs, vector<vector<string> >& outputs);
 	void test(const string& testFile, const string& outputFile, const string& modelFile);
 
-	// static training
 	void getGoldActions(const vector<Instance>& vecInsts, vector<vector<CAction> >& vecActions);
 
 

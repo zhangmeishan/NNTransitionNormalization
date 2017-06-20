@@ -153,7 +153,7 @@ void Segmentor::getGoldActions(const vector<Instance>& vecInsts, vector<vector<C
   vector<string> output;
   CAction answer;
   eval.reset();
-  static int numInstance, actionNum;
+  int numInstance, actionNum;
   vecActions.resize(vecInsts.size());
   for (numInstance = 0; numInstance < vecInsts.size(); numInstance++) {
     const Instance &instance = vecInsts[numInstance];
@@ -264,17 +264,17 @@ void Segmentor::train(const string& trainFile, const string& devFile, const stri
   for (int i = 0; i < inputSize; ++i)
     indexes.push_back(i);
 
-  static Metric eval, metric_dev, metric_test;
+  Metric eval, metric_dev, metric_test;
 
   int maxIter = m_options.maxIter * (inputSize / m_options.batchSize + 1);
   int oneIterMaxRound = (inputSize + m_options.batchSize - 1) / m_options.batchSize;
   std::cout << "maxIter = " << maxIter << std::endl;
   int devNum = devInsts.size(), testNum = testInsts.size();
 
-  static vector<vector<string> > decodeInstResults;
-  static bool bCurIterBetter;
-  static vector<vector<string> > subInstances;
-  static vector<vector<CAction> > subInstGoldActions;
+  vector<vector<string> > decodeInstResults;
+  bool bCurIterBetter;
+  vector<vector<string> > subInstances;
+  vector<vector<CAction> > subInstGoldActions;
 
   for (int iter = 0; iter < maxIter; ++iter) {
     std::cout << "##### Iteration " << iter << std::endl;
@@ -307,7 +307,7 @@ void Segmentor::train(const string& trainFile, const string& devFile, const stri
     else {
       eval.reset();
       bEvaluate = true;
-      for (int idy = 0; idy < inputSize; idy++) {
+      for (int idk = 0; idk < (inputSize + m_options.batchSize - 1)/m_options.batchSize; idk++) {
         random_shuffle(indexes.begin(), indexes.end());
         subInstances.clear();
         subInstGoldActions.clear();
@@ -320,8 +320,8 @@ void Segmentor::train(const string& trainFile, const string& devFile, const stri
         eval.overall_label_count += m_driver._eval.overall_label_count;
         eval.correct_label_count += m_driver._eval.correct_label_count;
 
-        if ((idy + 1) % (m_options.verboseIter * 10) == 0) {
-          std::cout << "current: " << idy + 1 << ", Cost = " << cost << ", Correct(%) = " << eval.getAccuracy() << std::endl;
+        if ((idk + 1) % (m_options.verboseIter * 10) == 0) {
+          std::cout << "current: " << idk + 1 << ", Cost = " << cost << ", Correct(%) = " << eval.getAccuracy() << std::endl;
         }
 
         m_driver.updateModel();
@@ -465,8 +465,6 @@ void Segmentor::loadModelFile(const string& inputModelFile) {
 void Segmentor::writeModelFile(const string& outputModelFile) {
 
 }
-
-int Node::global_code = 0;
 
 int main(int argc, char* argv[]) {
   std::string trainFile = "", devFile = "", testFile = "", modelFile = "";

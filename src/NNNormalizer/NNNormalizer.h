@@ -14,7 +14,7 @@
 #include "Options.h"
 #include "Pipe.h"
 #include "Utf.h"
-#include <vld.h> 
+//#include <vld.h> 
 
 using namespace nr;
 using namespace std;
@@ -40,7 +40,6 @@ public:
 	void predict(const vector<Instance>& inputs, dtype ratio, vector<vector<string> >& segouts, vector<vector<string> >& tagouts);
 	void test(const string& testFile, dtype ratio, const string& outputFile, const string& modelFile);
 
-	// static training
 	void getGoldActions(const vector<Instance>& vecInsts, vector<vector<CAction> >& vecActions);
 	void getGoldActions(const Instance& inst, vector<CAction>& actions);
 
@@ -53,7 +52,7 @@ protected:
 		outInst.clear();
 		dtype rpRation = m_options.rpRatio;
         vector<string> charInfo;
-        static unordered_set<string>::iterator iter;
+        unordered_set<string>::iterator iter;
         for (int idx = 0; idx < inst.words.size(); idx++) {
             dtype curRand = dtype(rand()) / RAND_MAX;
             string orgWord = inst.words[idx];

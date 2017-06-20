@@ -47,7 +47,7 @@ public:
     }
 
     char_left_lstm.init(&params.char_left_lstm, hyparams.dropProb, true, mem);
-    char_right_lstm.init(&params.char_right_lstm, hyparams.dropProb, true, mem);
+    char_right_lstm.init(&params.char_right_lstm, hyparams.dropProb, false, mem);
 
     for (int idx = 0; idx < length; idx++) {
       char_inputs[idx].init(hyparams.char_dim, hyparams.dropProb, mem);
