@@ -89,7 +89,6 @@ int Segmentor::createAlphabet(const vector<Instance>& vecInsts) {
   m_driver._modelparams.charTypes.initial(charType_stat);
 
 
-  unordered_map<string, int> action_stat;
 
   vector<CStateItem> state(m_driver._hyperparams.maxlength + 1);
   vector<string> output;
@@ -102,17 +101,12 @@ int Segmentor::createAlphabet(const vector<Instance>& vecInsts) {
     actionNum = 0;
     state[actionNum].clear();
     state[actionNum].setInput(&instance.chars);
-    action_stat[state[actionNum]._lastAction.str()]++;
     while (!state[actionNum].IsTerminated()) {
       state[actionNum].getGoldAction(instance.words, answer);
       state[actionNum].move(&(state[actionNum + 1]), answer);
       actionNum++;
-      action_stat[answer.str()]++;
     }
 
-    if (actionNum - 1 != instance.charsize()) {
-      std::cout << "action number is not correct, please check" << std::endl;
-    }
     state[actionNum].getSegResults(output);
 
     instance.evaluate(output, eval);
@@ -132,7 +126,6 @@ int Segmentor::createAlphabet(const vector<Instance>& vecInsts) {
       break;
   }
 
-  m_driver._modelparams.embeded_actions.initial(action_stat, 0);
 
   cout << numInstance << " " << endl;
   cout << "Total word num: " << word_stat.size() << endl;
@@ -168,9 +161,7 @@ void Segmentor::getGoldActions(const vector<Instance>& vecInsts, vector<vector<C
       actionNum++;
     }
 
-    if (actionNum - 1 != instance.charsize()) {
-      std::cout << "action number is not correct, please check" << std::endl;
-    }
+
     state[actionNum].getSegResults(output);
 
     instance.evaluate(output, eval);
@@ -248,7 +239,6 @@ void Segmentor::train(const string& trainFile, const string& devFile, const stri
   }
 
   m_driver._modelparams.chartype_table.initial(&m_driver._modelparams.embeded_chartypes, m_options.charTypeEmbSize, true);
-  m_driver._modelparams.action_table.initial(&m_driver._modelparams.embeded_actions, m_options.actionEmbSize, true);
 
   m_driver._hyperparams.action_num = CAction::FIN + 1;
   m_driver._hyperparams.setRequared(m_options);

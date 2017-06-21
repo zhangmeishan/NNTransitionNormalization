@@ -13,10 +13,6 @@
 #include "Action.h"
 
 struct ActionedNodes {
-    LookupNode last_action_input;
-    IncLSTM1Builder action_lstm;
-    ConcatNode action_state_concat;
-    UniNode action_state_hidden;
     LookupNode last_word_input;
     IncLSTM1Builder word_lstm;
     ConcatNode word_state_concat;
@@ -27,8 +23,8 @@ struct ActionedNodes {
     ConcatNode char_state_concat;
     UniNode char_state_hidden;
 
-    BiNode app_state_represent;
-    TriNode sep_state_represent;
+    UniNode app_state_represent;
+    BiNode sep_state_represent;
 
     LinearNode app_score;
     LinearNode sep_score;
@@ -36,7 +32,7 @@ struct ActionedNodes {
 
     vector<PAddNode> outputs;
 
-    BucketNode bucket_char, bucket_word, bucket_action;
+    BucketNode bucket_char, bucket_word;
 
 
 public:
@@ -45,12 +41,6 @@ public:
     }
 public:
     inline void initial(ModelParams& params, HyperParams& hyparams, AlignedMemoryPool* mem) {
-        last_action_input.setParam(&(params.action_table));
-        last_action_input.init(hyparams.action_dim, hyparams.dropProb, mem);
-        action_lstm.init(&(params.action_lstm), hyparams.dropProb, mem); //already allocated here
-        action_state_concat.init(hyparams.action_feat_dim, -1, mem);
-        action_state_hidden.setParam(&(params.action_state_hidden));
-        action_state_hidden.init(hyparams.action_state_dim, hyparams.dropProb, mem);
         last_word_input.setParam(&(params.word_table));
         last_word_input.init(hyparams.word_dim, hyparams.dropProb, mem);
         word_lstm.init(&(params.word_lstm), hyparams.dropProb, mem); //already allocated here
@@ -81,11 +71,8 @@ public:
             outputs[idx].init(1, -1, mem);
         }
 
-
-
         bucket_char.init(hyparams.char_lstm_dim, -1, mem);
         bucket_word.init(hyparams.word_lstm_dim, -1, mem);
-        bucket_action.init(hyparams.action_lstm_dim, -1, mem);
     }
 
 
@@ -98,24 +85,11 @@ public:
 
         bucket_char.forward(cg, 0);
         bucket_word.forward(cg, 0);
-        bucket_action.forward(cg, 0);
         PNode pseudo_char = &(bucket_char);
         PNode pseudo_word = &(bucket_word);
-        PNode pseudo_action = &(bucket_action);
 
 
-        vector<PNode> actionNodes;
-        last_action_input.forward(cg, atomFeat.str_AC);
-        action_lstm.forward(cg, &last_action_input, atomFeat.p_action_lstm);
-        actionNodes.push_back(&action_lstm._hidden);
-        if (action_lstm._nSize > 1) {
-            actionNodes.push_back(&action_lstm._pPrev->_hidden);
-        }
-        else {
-            actionNodes.push_back(pseudo_action);
-        }
-        action_state_concat.forward(cg, actionNodes);
-        action_state_hidden.forward(cg, &action_state_concat);
+
         vector<PNode> wordNodes;
         last_word_input.forward(cg, atomFeat.str_1W);
         word_lstm.forward(cg, &last_word_input, atomFeat.p_word_lstm);
@@ -171,8 +145,8 @@ public:
         char_state_concat.forward(cg, charNodes);
         char_state_hidden.forward(cg, &char_state_concat);
 
-        app_state_represent.forward(cg, &char_state_hidden, &action_state_hidden);
-        sep_state_represent.forward(cg, &char_state_hidden, &word_state_hidden, &action_state_hidden);
+        app_state_represent.forward(cg, &char_state_hidden);
+        sep_state_represent.forward(cg, &char_state_hidden, &word_state_hidden);
 
         for (int idx = 0; idx < ac_num; idx++) {
             ac.set(actions[idx]);

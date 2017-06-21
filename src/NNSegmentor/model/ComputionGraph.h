@@ -136,7 +136,6 @@ public:
             output.bGold = true;
           }
           else {
-            //scored_action.score += ?? //for max-margin
             scored_action.bGold = false;
             output.bGold = false;
             if (_pcg->train)pGenerator->_nextscores.outputs[idy].val[0] += pOpts->delta;
@@ -184,7 +183,6 @@ public:
 
       beam.sort_elem();
       for (int idx = 0; idx < offset; idx++) {
-        //states[step][idx]._score.forward(this, &(states[step][idx]._current.output), &(bucket));
         pGenerator = beam[idx].item;
         action.set(beam[idx].ac);
         pGenerator->move(&(states[step][idx]), action);

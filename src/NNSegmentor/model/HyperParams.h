@@ -38,11 +38,6 @@ struct HyperParams {
   int word_state_dim;
   bool word_tune;
 
-  int action_dim;
-  int action_lstm_dim;
-  int action_feat_dim;
-  int action_state_dim;
-
   int app_dim;
   int sep_dim;
 
@@ -82,11 +77,6 @@ public:
     word_feat_dim = 2 * word_lstm_dim;
     word_state_dim = opt.wordStateSize;
     word_tune = opt.wordEmbFineTune;
-
-    action_dim = opt.actionEmbSize;
-    action_lstm_dim = opt.actionRNNHiddenSize;
-    action_feat_dim = 2 * action_lstm_dim;
-    action_state_dim = opt.actionStateSize;
 
     app_dim = opt.appHiddenSize;
     sep_dim = opt.sepHiddenSize;

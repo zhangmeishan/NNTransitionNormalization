@@ -178,7 +178,6 @@ public:
         for (int idx = 0; idx < pCharacters->size(); idx++) {
           std::cout << (*pCharacters)[idx] << std::endl;
         }
-
         std::cout << "" << std::endl;
         return;
       }

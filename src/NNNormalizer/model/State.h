@@ -345,54 +345,15 @@ public:
   inline void prepare(HyperParams* hyper_params, ModelParams* model_params, GlobalNodes* global_nodes) {
     _atomFeat.str_1W = _word;
     _atomFeat.str_1T = _tag;
-    _atomFeat.str_3T = getStateDictTag(hyper_params, this);
-    if (_prevStackState != 0) {
-      _atomFeat.str_3T = getStateDictTag(hyper_params, _prevStackState) + _atomFeat.str_3T;
-      if (_prevStackState->_prevStackState != 0) {
-        _atomFeat.str_3T = getStateDictTag(hyper_params, _prevStackState->_prevStackState) + _atomFeat.str_3T;
-      }
-      else {
-        _atomFeat.str_3T = "15" + _atomFeat.str_3T;
-      }
-    }
-    else {
-      _atomFeat.str_3T = "1515" + _atomFeat.str_3T;
-    }
-    _atomFeat.str_AC = _lastAction.str();
     _atomFeat.word_num = _word_count;
     _atomFeat.word_start = _wstart;
     _atomFeat.next_position = _next_index;
     _atomFeat.char_size = _char_size;
     _atomFeat.p_word_lstm = _prevStackState == 0 ? NULL : &(_prevStackState->_nextscores.word_lstm);
-    _atomFeat.p_tag_lstm = _prevStackState == 0 ? NULL : &(_prevStackState->_nextscores.tag_lstm);
-    _atomFeat.p_action_lstm = _prevState == 0 ? NULL : &(_prevState->_nextscores.action_lstm);
     _atomFeat.p_char_left_lstm = global_nodes == NULL ? NULL : &(global_nodes->char_left_lstm);
     _atomFeat.p_char_right_lstm = global_nodes == NULL ? NULL : &(global_nodes->char_right_lstm);
   }
 
-public:
-  inline string getStateDictTag(HyperParams* hyper_params, CStateItem* pState) {
-    string curTag = "";
-    if (pState->_wstart >= 0) {
-      stringstream ss;
-      int curLength = pState->_wend - pState->_wstart + 1;
-      if (curLength > 5) curLength = 5;
-      if (hyper_params->usualWords.find(pState->_word) != hyper_params->usualWords.end()) {
-        ss << pState->_tag << curLength;
-      }
-      else {
-        ss << pState->_tag << 0;
-      }
-      curTag = ss.str();
-    }
-    else {
-      stringstream ss;
-      ss << pState->_tag << 5;
-      curTag = ss.str();
-    }
-
-    return curTag;
-  }
 };
 
 

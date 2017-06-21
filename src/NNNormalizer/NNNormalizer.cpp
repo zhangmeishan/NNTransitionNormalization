@@ -50,29 +50,6 @@ int Normalizer::initialActionWordMap() {
 
   m_driver._hyperparams.action_num = CAction::NO_ACTION;
 
-  m_driver._hyperparams.usualWords.clear();
-  if (m_options.wordFile == "") {
-    return -1;
-  }
-  if (inf.is_open()) {
-    inf.close();
-    inf.clear();
-  }
-  inf.open(m_options.wordFile.c_str());
-  while (1) {
-    if (!my_getline(inf, strLine)) {
-      break;
-    }
-    split_bychar(strLine, vecInfo, ' ');
-    if (vecInfo.size() != 1) {
-      std::cout << "word file error" << strLine << std::endl;
-      continue;
-    }
-    m_driver._hyperparams.usualWords.insert(vecInfo[0]);
-  }
-
-  inf.close();
-
   return 1;
 }
 
@@ -145,7 +122,6 @@ int Normalizer::createAlphabet(const vector<Instance>& vecInsts) {
   m_driver._modelparams.charTypes.initial(charType_stat);
 
 
-  unordered_map<string, int> action_stat;
 
   vector<CStateItem> state(m_driver._hyperparams.maxlength + 1);
   vector<string> output, tags;
@@ -158,18 +134,13 @@ int Normalizer::createAlphabet(const vector<Instance>& vecInsts) {
     actionNum = 0;
     state[actionNum].clear();
     state[actionNum].setInput(&instance.chars, 0);
-    action_stat[state[actionNum]._lastAction.str()]++;
     while (!state[actionNum].IsTerminated()) {
       state[actionNum].getGoldAction(instance.words, instance.tags, answer);
       //std::cout << answer.str() << " ";
       state[actionNum].move(&(state[actionNum + 1]), answer);
       actionNum++;
-      action_stat[answer.str()]++;
     }
-    //std::cout << std::endl;
-//if (actionNum - 1 != instance.charsize()) {
-//	std::cout << "action number is not correct, please check" << std::endl;
-//}
+
     state[actionNum].getSegResults(output, tags);
 
     instance.evaluate(output, tags, eval, evalnorm);
@@ -189,25 +160,6 @@ int Normalizer::createAlphabet(const vector<Instance>& vecInsts) {
       break;
   }
 
-  action_stat["SUT"] = 1;
-  m_driver._modelparams.embeded_actions.initial(action_stat, 0);
-  unordered_map<string, int> tag_stat;
-  vector<string> dict_tags;
-  dict_tags.push_back("00"); dict_tags.push_back("01"); dict_tags.push_back("02"); //informal
-  dict_tags.push_back("03"); dict_tags.push_back("04"); dict_tags.push_back("05");
-  dict_tags.push_back("10"); dict_tags.push_back("11"); dict_tags.push_back("12"); //formal
-  dict_tags.push_back("13"); dict_tags.push_back("14"); dict_tags.push_back("15");
-  for (int s1 = 0; s1 < dict_tags.size(); s1++) {
-    string s1_str = dict_tags[s1];
-    for (int s2 = 0; s2 < dict_tags.size(); s2++) {
-      string s2_str = dict_tags[s2];
-      for (int s3 = 0; s3 < dict_tags.size(); s3++) {
-        string s3_str = dict_tags[s3];
-        tag_stat[s1_str + s2_str + s3_str]++;
-      }
-    }
-  }
-  m_driver._modelparams.embeded_tags.initial(tag_stat, 0);
 
   cout << numInstance << " " << endl;
   cout << "Total word num: " << word_stat.size() << endl;
@@ -243,9 +195,7 @@ void Normalizer::getGoldActions(const vector<Instance>& vecInsts, vector<vector<
       actionNum++;
     }
 
-    //if (actionNum - 1 != instance.charsize()) {
-    //	std::cout << "action number is not correct, please check" << std::endl;
-    //}
+
     state[actionNum].getSegResults(output, tags);
 
     instance.evaluate(output, tags, eval, evalnorm);
@@ -357,8 +307,6 @@ void Normalizer::train(const string& trainFile, const string& devFile, const str
   }
 
   m_driver._modelparams.chartype_table.initial(&m_driver._modelparams.embeded_chartypes, m_options.charTypeEmbSize, true);
-  m_driver._modelparams.tag_table.initial(&m_driver._modelparams.embeded_tags, m_options.tagEmbSize, true);
-  m_driver._modelparams.action_table.initial(&m_driver._modelparams.embeded_actions, m_options.actionEmbSize, true);
 
   //m_driver._hyperparams.action_num = CAction::FIN + 1;
   m_driver._hyperparams.setRequared(m_options);
@@ -420,7 +368,7 @@ void Normalizer::train(const string& trainFile, const string& devFile, const str
     else {
       eval.reset();
       bEvaluate = true;
-      for (int idk = 0; idk < (inputSize + m_options.batchSize - 1)/m_options.batchSize; idk++) {
+      for (int idk = 0; idk < (inputSize + m_options.batchSize - 1) / m_options.batchSize; idk++) {
         random_shuffle(indexes.begin(), indexes.end());
         subInstances.clear();
         subInstGoldActions.clear();

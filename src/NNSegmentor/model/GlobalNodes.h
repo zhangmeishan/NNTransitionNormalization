@@ -23,16 +23,16 @@ struct GlobalNodes {
   LSTM1Builder char_right_lstm;
 
 public:
-  inline void resize(int max_length) {
-    char_inputs.resize(max_length);
-    bichar_inputs.resize(max_length);
-    chartype_inputs.resize(max_length);
-    char_left_represents.resize(max_length);
-    char_right_represents.resize(max_length);
-    char_left_conv.resize(max_length);
-    char_right_conv.resize(max_length);
-    char_left_lstm.resize(max_length);
-    char_right_lstm.resize(max_length);
+  inline void resize(int max_sentence_length) {
+    char_inputs.resize(max_sentence_length);
+    bichar_inputs.resize(max_sentence_length);
+    chartype_inputs.resize(max_sentence_length);
+    char_left_represents.resize(max_sentence_length);
+    char_right_represents.resize(max_sentence_length);
+    char_left_conv.resize(max_sentence_length);
+    char_right_conv.resize(max_sentence_length);
+    char_left_lstm.resize(max_sentence_length);
+    char_right_lstm.resize(max_sentence_length);
   }
 
 public:
