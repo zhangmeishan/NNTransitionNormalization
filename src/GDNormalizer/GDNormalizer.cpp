@@ -402,7 +402,7 @@ void Normalizer::train(const string& trainFile, const string& devFile, const str
         decodeInstTags.clear();
       }
       metric_dev.reset(); metricnorm_dev.reset();
-      predict(devInsts, m_options.rpRatio, decodeInstResults, decodeInstTags);
+      predict(devInsts, 1.0, decodeInstResults, decodeInstTags);
       for (int idx = 0; idx < devInsts.size(); idx++) {
         devInsts[idx].evaluate(decodeInstResults[idx], decodeInstTags[idx], metric_dev, metricnorm_dev);
       }
@@ -424,7 +424,7 @@ void Normalizer::train(const string& trainFile, const string& devFile, const str
           decodeInstTags.clear();
         }
         metric_test.reset(); metricnorm_test.reset();
-        predict(testInsts, m_options.rpRatio, decodeInstResults, decodeInstTags);
+        predict(testInsts, 1.0, decodeInstResults, decodeInstTags);
         for (int idx = 0; idx < testInsts.size(); idx++) {
           testInsts[idx].evaluate(decodeInstResults[idx], decodeInstTags[idx], metric_test, metricnorm_test);
         }
