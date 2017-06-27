@@ -131,33 +131,37 @@ public:
 private:
   // max-margin
   dtype loss(GraphBuilder& builder, int num) {
-    int step = builder.outputs.size();
-    _eval.correct_label_count += step;
+    int maxstep = builder.outputs.size();
+    _eval.correct_label_count += maxstep;
     PNode pBestNode = NULL;
     PNode pGoldNode = NULL;
     PNode pCurNode;
 
-    int offset = builder.outputs[step - 1].size();
-    for (int idx = 0; idx < offset; idx++) {
-      pCurNode = builder.outputs[step - 1][idx].in;
-      if (pBestNode == NULL || pCurNode->val[0] > pBestNode->val[0]) {
-        pBestNode = pCurNode;
+    dtype  cost = 0.0;
+
+    for (int step = 0; step < maxstep; step++) {
+      int offset = builder.outputs[step].size();
+      for (int idx = 0; idx < offset; idx++) {
+        pCurNode = builder.outputs[step][idx].in;
+        if (pBestNode == NULL || pCurNode->val[0] > pBestNode->val[0]) {
+          pBestNode = pCurNode;
+        }
+        if (builder.outputs[step][idx].bGold) {
+          pGoldNode = pCurNode;
+        }
       }
-      if (builder.outputs[step - 1][idx].bGold) {
-        pGoldNode = pCurNode;
+
+      _batch++;
+
+      if (pGoldNode != pBestNode) {
+        pGoldNode->loss[0] = -1.0 / num;
+        pBestNode->loss[0] = 1.0 / num;
+
+        cost += 1.0;
       }
     }
 
-    _batch++;
-
-    if (pGoldNode != pBestNode) {
-      pGoldNode->loss[0] = -1.0 / num;
-      pBestNode->loss[0] = 1.0 / num;
-
-      return 1.0;
-    }
-
-    return 0.0;
+    return cost;
   }
 
   dtype loss_google(GraphBuilder& builder, int num) {

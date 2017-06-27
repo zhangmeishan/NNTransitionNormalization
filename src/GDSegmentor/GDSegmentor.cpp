@@ -46,7 +46,6 @@ int Segmentor::createAlphabet(const vector<Instance>& vecInsts) {
       word_stat[normalize_to_lowerwithdigit(instance.words[idx])]++;
     }
     for (int idx = 0; idx < instance.charsize(); idx++) {
-      charType_stat[instance.chars[idx]]++;
       char_stat[instance.chars[idx]]++;
       if (idx < instance.charsize() - 1) {
         bichar_stat[instance.chars[idx] + instance.chars[idx + 1]]++;
@@ -60,8 +59,8 @@ int Segmentor::createAlphabet(const vector<Instance>& vecInsts) {
   char_stat[unknownkey] = m_options.charCutOff + 1;
   bichar_stat[nullkey] = m_options.bicharCutOff + 1;
   bichar_stat[unknownkey] = m_options.bicharCutOff + 1;
-  m_driver._modelparams.words.initial(word_stat, 0);
-  m_driver._modelparams.chars.initial(char_stat, 0);
+  m_driver._modelparams.words.initial(word_stat, m_options.wordCutOff);
+  m_driver._modelparams.chars.initial(char_stat, m_options.charCutOff);
 
   if (!m_options.wordEmbFineTune && m_options.wordEmbFile != "") {
     m_driver._modelparams.embeded_words.initial(m_options.wordEmbFile);
@@ -438,11 +437,7 @@ void Segmentor::test(const string& testFile, const string& outputFile, const str
       os << testInstResults[idx][idy] << " ";
     }
     os << std::endl;
-    for (int idy = 0; idy < testInstResults[idx].size(); idy++) {
-      os << testInstResults[idx][idy] << " ";
-    }
-    os << std::endl;
-    os << std::endl;
+
   }
   os.close();
 }
@@ -462,8 +457,7 @@ int main(int argc, char* argv[]) {
   std::string outputFile = "";
   bool bTrain = false;
   dsr::Argument_helper ah;
-  int memsize = 1;
-
+  int memsize = 0;
 
 
   ah.new_flag("l", "learn", "train or test", bTrain);
