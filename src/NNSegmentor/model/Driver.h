@@ -27,6 +27,7 @@ public:
 
 public:
   Graph _cg;  // build neural graphs
+  vector<Graph> _decode_cgs;
   vector<GraphBuilder> _builders;
   ModelParams _modelparams;  // model parameters
   HyperParams _hyperparams;
@@ -51,9 +52,10 @@ public:
     _hyperparams.print();
 
     _builders.resize(_hyperparams.batch);
+    _decode_cgs.resize(_hyperparams.batch);
 
     for (int idx = 0; idx < _hyperparams.batch; idx++) {
-      _builders[idx].initial(&_cg, _modelparams, _hyperparams, &aligned_mem);
+      _builders[idx].initial(_modelparams, _hyperparams, &aligned_mem);
     }
 
 
@@ -78,14 +80,17 @@ public:
     }
 
     for (int idx = 0; idx < num; idx++) {
-      _builders[idx].encode(&sentences[idx]);
+      _builders[idx].encode(&_cg, &sentences[idx]);
     }
     _cg.compute();
 
+#pragma omp parallel for schedule(static,1)
     for (int idx = 0; idx < num; idx++) {
-      _builders[idx].decode(&sentences[idx], &goldACs[idx]);
+      _decode_cgs[idx].clearValue(true);
+      _builders[idx].decode(&(_decode_cgs[idx]), &sentences[idx], &goldACs[idx]);
       _eval.overall_label_count += goldACs[idx].size();
       cost += loss_google(_builders[idx], num);
+      _decode_cgs[idx].backward();
     }
 
     _cg.backward();
@@ -101,13 +106,15 @@ public:
     }
     _cg.clearValue();
     for (int idx = 0; idx < num; idx++) {
-      _builders[idx].encode(&sentences[idx]);
+      _builders[idx].encode(&_cg, &sentences[idx]);
     }
     _cg.compute();
 
     results.resize(num);
+#pragma omp parallel for schedule(static,1)
     for (int idx = 0; idx < num; idx++) {
-      _builders[idx].decode(&sentences[idx]);
+      _decode_cgs[idx].clearValue();
+      _builders[idx].decode(&(_decode_cgs[idx]), &sentences[idx]);
       int step = _builders[idx].outputs.size();
       _builders[idx].states[step - 1][0].getSegResults(results[idx]);
     }

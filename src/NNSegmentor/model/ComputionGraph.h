@@ -19,8 +19,6 @@ struct COutput {
 // This framework wastes memory
 class GraphBuilder {
 public:
-  Graph *_pcg;
-public:
   GlobalNodes globalNodes;
   // node instances
   CStateItem start;
@@ -43,9 +41,7 @@ public:
 
 public:
   //allocate enough nodes 
-  inline void initial(Graph* pcg, ModelParams& model, HyperParams& opts, AlignedMemoryPool* mem) {
-    _pcg = pcg;
-
+  inline void initial(ModelParams& model, HyperParams& opts, AlignedMemoryPool* mem) {
     std::cout << "state size: " << sizeof(CStateItem) << std::endl;
     std::cout << "action node size: " << sizeof(ActionedNodes) << std::endl;
     globalNodes.resize(max_sentence_clength);
@@ -67,20 +63,20 @@ public:
 
   inline void clear() {
     //beams.clear();
-
+    clearVec(outputs);
     clearVec(states);
     pModel = NULL;
     pOpts = NULL;
   }
 
 public:
-  inline void encode(const std::vector<std::string>* pCharacters) {
-    globalNodes.forward(_pcg, pCharacters);
+  inline void encode(Graph* pcg, const std::vector<std::string>* pCharacters) {
+    globalNodes.forward(pcg, pCharacters);
   }
 
 public:
   // some nodes may behave different during training and decode, for example, dropout
-  inline void decode(const std::vector<std::string>* pCharacters, const vector<CAction>* goldAC = NULL) {
+  inline void decode(Graph* pcg, const std::vector<std::string>* pCharacters, const vector<CAction>* goldAC = NULL) {
     //first step, clear node values
     clearVec(outputs);
 
@@ -114,15 +110,15 @@ public:
       for (int idx = 0; idx < lastStates.size(); idx++) {
         pGenerator = lastStates[idx];
         pGenerator->getCandidateActions(actions[idx]);
-        pGenerator->computeNextScore(_pcg, actions[idx]);
+        pGenerator->computeNextScore(pcg, actions[idx]);
       }
 
-      _pcg->compute(); //must compute here, or we can not obtain the scores
+      pcg->compute(); //must compute here, or we can not obtain the scores
 
       answer.clear();
       per_step_output.clear();
       correct_action_scored = false;
-      if (_pcg->train) answer = (*goldAC)[step];
+      if (pcg->train) answer = (*goldAC)[step];
       beam.clear();
 
       for (int idx = 0; idx < lastStates.size(); idx++) {
@@ -138,7 +134,7 @@ public:
           else {
             scored_action.bGold = false;
             output.bGold = false;
-            if (_pcg->train)pGenerator->_nextscores.outputs[idy].val[0] += pOpts->delta;
+            if (pcg->train)pGenerator->_nextscores.outputs[idy].val[0] += pOpts->delta;
           }
           scored_action.score = pGenerator->_nextscores.outputs[idy].val[0];
           scored_action.position = idy;
@@ -150,7 +146,7 @@ public:
 
       outputs.push_back(per_step_output);
 
-      if (_pcg->train && !correct_action_scored) { //training
+      if (pcg->train && !correct_action_scored) { //training
         std::cout << "error during training, gold-standard action is filtered: " << step << std::endl;
         //				for (int idx = 0; idx < inst.size(); idx++) {
         //					std::cout << inst.words[idx] << "\t" << inst.tags[idx] << "\t" << inst.result.heads[idx] << "\t" << inst.result.labels[idx] << endl;
@@ -204,7 +200,7 @@ public:
         }
       }
 
-      if (_pcg->train && !correct_in_beam) {
+      if (pcg->train && !correct_in_beam) {
         break;
       }
 
