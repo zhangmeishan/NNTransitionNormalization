@@ -39,11 +39,11 @@ struct ActionedNodes {
     BucketNode bucket_char, bucket_word, bucket_action;
 
 
-public:
+  public:
     ~ActionedNodes() {
         //m_outf.close();
     }
-public:
+  public:
     inline void initial(ModelParams& params, HyperParams& hyparams, AlignedMemoryPool* mem) {
         last_action_input.setParam(&(params.action_table));
         last_action_input.init(hyparams.action_dim, hyparams.dropProb, mem);
@@ -89,7 +89,7 @@ public:
     }
 
 
-public:
+  public:
     inline void forward(Graph* cg, const vector<CAction>& actions, AtomFeatures& atomFeat, PNode prevStateNode) {
         vector<PNode> sumNodes;
         CAction ac;
@@ -110,8 +110,7 @@ public:
         actionNodes.push_back(&action_lstm._hidden);
         if (action_lstm._nSize > 1) {
             actionNodes.push_back(&action_lstm._pPrev->_hidden);
-        }
-        else {
+        } else {
             actionNodes.push_back(pseudo_action);
         }
         action_state_concat.forward(cg, actionNodes);
@@ -122,8 +121,7 @@ public:
         wordNodes.push_back(&word_lstm._hidden);
         if (word_lstm._nSize > 1) {
             wordNodes.push_back(&word_lstm._pPrev->_hidden);
-        }
-        else {
+        } else {
             wordNodes.push_back(pseudo_word);
         }
         word_state_concat.forward(cg, wordNodes);
@@ -185,12 +183,10 @@ public:
             if (ac.isAppend()) {
                 app_score.forward(cg, &app_state_represent);
                 sumNodes.push_back(&app_score);
-            }
-            else if (ac.isSeparate() || ac.isFinish()) {
+            } else if (ac.isSeparate() || ac.isFinish()) {
                 sep_score.forward(cg, &sep_state_represent);
                 sumNodes.push_back(&sep_score);
-            }
-            else {
+            } else {
                 std::cout << "error action here" << std::endl;
             }
 

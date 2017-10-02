@@ -9,37 +9,37 @@
 #define SRC_AtomFeatures_H_
 #include "ModelParams.h"
 struct AtomFeatures {
-public:
-	string str_1W;
+  public:
+    string str_1W;
     string str_1T;
     string str_AC;
     string str_3T;
-	int next_position;
+    int next_position;
     int char_size;
     int word_num;
     int word_start;
-public:
-	IncLSTM1Builder* p_word_lstm;
+  public:
+    IncLSTM1Builder* p_word_lstm;
     IncLSTM1Builder* p_tag_lstm;
     IncLSTM1Builder* p_action_lstm;
-	LSTM1Builder* p_char_left_lstm;
-	LSTM1Builder* p_char_right_lstm;
-public:
-	void clear(){
-		str_1W = "";
+    LSTM1Builder* p_char_left_lstm;
+    LSTM1Builder* p_char_right_lstm;
+  public:
+    void clear() {
+        str_1W = "";
         str_1T = "";
         str_3T = "";
         str_AC = "";
-		next_position = -1;
+        next_position = -1;
         char_size = -1;
         word_num = -1;
         word_start = -1;
-		p_word_lstm = NULL;
+        p_word_lstm = NULL;
         p_tag_lstm = NULL;
         p_action_lstm = NULL;
-		p_char_left_lstm = NULL;
-		p_char_right_lstm = NULL;
-	}
+        p_char_left_lstm = NULL;
+        p_char_right_lstm = NULL;
+    }
 
 };
 

@@ -35,48 +35,48 @@ struct ActionedNodes {
     BucketNode bucket_char, bucket_word;
 
 
-public:
+  public:
     ~ActionedNodes() {
         //m_outf.close();
     }
-public:
-    inline void initial(ModelParams& params, HyperParams& hyparams, AlignedMemoryPool* mem) {
+  public:
+    inline void initial(ModelParams& params, HyperParams& hyparams) {
         last_word_input.setParam(&(params.word_table));
-        last_word_input.init(hyparams.word_dim, hyparams.dropProb, mem);
-        word_lstm.init(&(params.word_lstm), hyparams.dropProb, mem); //already allocated here
-        word_state_concat.init(hyparams.word_feat_dim, -1, mem);
+        last_word_input.init(hyparams.word_dim, hyparams.dropProb);
+        word_lstm.init(&(params.word_lstm), hyparams.dropProb); //already allocated here
+        word_state_concat.init(hyparams.word_feat_dim, -1);
         word_state_hidden.setParam(&(params.word_state_hidden));
-        word_state_hidden.init(hyparams.word_state_dim, hyparams.dropProb, mem);
+        word_state_hidden.init(hyparams.word_state_dim, hyparams.dropProb);
 
-        char_span_repsent_left.init(hyparams.char_lstm_dim, -1, mem);
-        char_span_repsent_right.init(hyparams.char_lstm_dim, -1, mem);
-        char_state_concat.init(hyparams.char_feat_dim, -1, mem);
+        char_span_repsent_left.init(hyparams.char_lstm_dim, -1);
+        char_span_repsent_right.init(hyparams.char_lstm_dim, -1);
+        char_state_concat.init(hyparams.char_feat_dim, -1);
         char_state_hidden.setParam(&params.char_state_hidden);
-        char_state_hidden.init(hyparams.char_state_dim, hyparams.dropProb, mem);
+        char_state_hidden.init(hyparams.char_state_dim, hyparams.dropProb);
 
         app_state_represent.setParam(&params.app_state_represent);
-        app_state_represent.init(hyparams.app_dim, hyparams.dropProb, mem);
+        app_state_represent.init(hyparams.app_dim, hyparams.dropProb);
         sep_state_represent.setParam(&params.sep_state_represent);
-        sep_state_represent.init(hyparams.sep_dim, hyparams.dropProb, mem);
+        sep_state_represent.init(hyparams.sep_dim, hyparams.dropProb);
 
 
         app_score.setParam(&(params.app_score));
-        app_score.init(1, -1, mem);
+        app_score.init(1, -1);
         sep_score.setParam(&(params.sep_score));
-        sep_score.init(1, -1, mem);
+        sep_score.init(1, -1);
         outputs.resize(hyparams.action_num);
 
         //neural features
         for (int idx = 0; idx < hyparams.action_num; idx++) {
-            outputs[idx].init(1, -1, mem);
+            outputs[idx].init(1, -1);
         }
 
-        bucket_char.init(hyparams.char_lstm_dim, -1, mem);
-        bucket_word.init(hyparams.word_lstm_dim, -1, mem);
+        bucket_char.init(hyparams.char_lstm_dim, -1);
+        bucket_word.init(hyparams.word_lstm_dim, -1);
     }
 
 
-public:
+  public:
     inline void forward(Graph* cg, const vector<CAction>& actions, AtomFeatures& atomFeat, PNode prevStateNode) {
         vector<PNode> sumNodes;
         CAction ac;
@@ -96,8 +96,7 @@ public:
         wordNodes.push_back(&word_lstm._hidden);
         if (word_lstm._nSize > 1) {
             wordNodes.push_back(&word_lstm._pPrev->_hidden);
-        }
-        else {
+        } else {
             wordNodes.push_back(pseudo_word);
         }
         word_state_concat.forward(cg, wordNodes);
@@ -159,12 +158,10 @@ public:
             if (ac.isAppend()) {
                 app_score.forward(cg, &app_state_represent);
                 sumNodes.push_back(&app_score);
-            }
-            else if (ac.isSeparate() || ac.isFinish()) {
+            } else if (ac.isSeparate() || ac.isFinish()) {
                 sep_score.forward(cg, &sep_state_represent);
                 sumNodes.push_back(&sep_score);
-            }
-            else {
+            } else {
                 std::cout << "error action here" << std::endl;
             }
 
